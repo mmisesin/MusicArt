@@ -6,65 +6,65 @@
 //  Copyright © 2018 misesin. All rights reserved.
 //
 
-import Alamofire
+import Foundation
 
 enum Router {
     
     struct Constants {
-        static let baseURL = "http://ws.audioscrobbler.com/2.0/"
+        static let scheme = "http"
+        static let baseURL = "ws.audioscrobbler.com"
         static let apiKey = "22f54e267ea5021860c1759bd9ccd8e7"
+        static let format = "json"
     }
     
-    case getAlbums
-    case getAlbumTracks
-    
-    var method: Alamofire.HTTPMethod {
-        switch self {
-        case .getAlbums,
-             .getAlbumTracks:
-            return .get
-        }
-    }
+    case getTopAlbums(name: String)
+    case getAlbumInfo(artistName: String, albumName: String)
     
     var path: String {
+        return "/2.0"
+    }
+    
+    var method: String {
         switch self {
-            case .getAlbums,
-                 .getAlbumTracks:
-            return ""
+        case .getTopAlbums,
+             .getAlbumInfo:
+            return "GET"
         }
     }
     
-    var parameters: [String: Any] {
+    var queryItems: [URLQueryItem] {
+        var items: [URLQueryItem] = []
         switch self {
-        case .getAlbums,
-             .getAlbumTracks:
-            return [:]
+        case .getTopAlbums(let name):
+            items.append(URLQueryItem(name: "method", value: "artist.gettopalbums"))
+            items.append(URLQueryItem(name: "artist", value: name))
+        case .getAlbumInfo(let artistName, let albumName):
+            items.append(URLQueryItem(name: "method", value: "album.getInfo"))
+            items.append(URLQueryItem(name: "artist", value: artistName))
+            items.append(URLQueryItem(name: "album", value: albumName))
         }
+                
+        items.append(URLQueryItem(name: "api_key", value: Constants.apiKey))
+        items.append(URLQueryItem(name: "format", value: Constants.format))
+        return items
     }
     
-    func urlRequest() throws -> URLRequest {
-        let url = URL(string: Constants.baseURL)
-        
-        var urlRequest: URLRequest
-        guard let unwrappedUrl = url else {
-            throw "Invalid URL"
+    func urlRequest() -> URLRequest? {
+        var urlComponents = URLComponents()
+        urlComponents.scheme = Constants.scheme
+        urlComponents.host = Constants.baseURL
+        urlComponents.path = path
+        urlComponents.queryItems = self.queryItems
+        guard let url = urlComponents.url else {
+            preconditionFailure("Could not create URL for components")
         }
         
-        if path.isEmpty {
-            urlRequest = URLRequest(url: unwrappedUrl)
-        } else {
-            urlRequest = URLRequest(url: unwrappedUrl.appendingPathComponent(path))
-        }
+        var urlRequest = URLRequest(url: url)
         
-        urlRequest.httpMethod = method.rawValue
+        urlRequest.httpMethod = method
         urlRequest.cachePolicy = .reloadIgnoringLocalCacheData
         
-        switch self {
-        case .getAlbums:
-            
-        case .getAlbumTracks:
-            
-        }
+        return urlRequest
         
     }
     

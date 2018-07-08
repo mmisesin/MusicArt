@@ -10,10 +10,8 @@ import Foundation
 
 struct Album: Codable {
     
-    var title: String?
-    var tracks: [Track]
-    var playcountNumber: Int?
-    var listenersNumber: Int?
-    var coverImageUrl: String?
+    var playcount: Int
+    var image: [Image]
+    var name: String
     
 }

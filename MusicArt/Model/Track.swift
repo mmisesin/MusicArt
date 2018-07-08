@@ -8,9 +8,20 @@
 
 import Foundation
 
-struct Track: Codable {
+struct TrackEntry: Codable {
     
-    var title: String?
-    var duration: Int?
+    var tracks: [Track]
+    
+    enum CodingKeys: String, CodingKey {
+        case tracks = "track"
+    }
     
 }
+
+struct Track: Codable {
+    
+    var name: String
+    var duration: String
+    
+}
+
